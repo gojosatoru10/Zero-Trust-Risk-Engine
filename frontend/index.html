@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero Trust Sentinel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt text-success"></i> Zero Trust Sentinel
+            </a>
+            <span class="navbar-text">
+                <span id="system-status" class="badge bg-success">System Online</span>
+            </span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-book"></i> User Guide
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">How to verify access:</h5>
+                        <div class="steps-container">
+                            <div class="step-item">
+                                <span class="step-num">1</span>
+                                <p><strong>Select Telemetry:</strong> Choose the device status and behavior from the dropdowns.</p>
+                            </div>
+                            <div class="step-item">
+                                <span class="step-num">2</span>
+                                <p><strong>Analyze:</strong> Click the "Analyze Risk" button to send data to the AI.</p>
+                            </div>
+                            <div class="step-item">
+                                <span class="step-num">3</span>
+                                <p><strong>Review Decision:</strong>
+                                    <br><span class="badge bg-success">ALLOWED</span> = Safe
+                                    <br><span class="badge bg-danger">DENIED</span> = Blocked
+                                </p>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <small><i class="fas fa-info-circle"></i> The "High Suspicion" setting combined with "Malware" usually triggers a block.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card shadow-lg">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4 text-center">🛡️ Device Access Control</h3>
+                        
+                        <form id="riskForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Suspicion Level</label>
+                                    <select class="form-select" id="SuspicionLevel">
+                                        <option value="Low">Low (Safe)</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High (Risky)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Operating System</label>
+                                    <select class="form-select" id="OSFamily">
+                                        <option value="Windows10">Windows 10</option>
+                                        <option value="Windows7">Windows 7</option>
+                                        <option value="Linux">Linux</option>
+                                        <option value="macOS">macOS</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Event Category</label>
+                                    <select class="form-select" id="Category">
+                                        <option value="Malware">Malware</option>
+                                        <option value="Phishing">Phishing</option>
+                                        <option value="DDoS">DDoS</option>
+                                        <option value="Discovery">Network Discovery</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">MITRE Technique ID</label>
+                                    <input type="text" class="form-control" id="MitreTechniques" value="T1059" placeholder="e.g. T1059">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Action Type</label>
+                                    <input type="text" class="form-control" id="ActionGrouped" value="Execution">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Entity Type</label>
+                                    <select class="form-select" id="EntityType">
+                                        <option value="User">User</option>
+                                        <option value="Machine">Machine</option>
+                                        <option value="Process">Process</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Origin Country Code</label>
+                                    <input type="text" class="form-control" id="CountryCode" value="US" placeholder="e.g. US, EG, DE">
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <button type="button" onclick="checkRisk()" class="btn btn-primary w-100 btn-lg" id="analyzeBtn">
+                                <span>🔍 Analyze Risk</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="result-card" class="card mt-4 shadow-lg border-0" style="display: none;">
+                    <div class="card-body text-center p-5">
+                        <div id="icon-container" class="mb-3">
+                            </div>
+                        <h2 id="decision-text" class="fw-bold"></h2>
+                        <p id="grade-text" class="text-muted"></p>
+                        
+                        <label class="form-label mt-3 fw-bold">AI Confidence Score</label>
+                        <div class="progress" style="height: 30px;">
+                            <div id="prob-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+
+                        <div class="mt-4 text-start bg-light p-3 rounded">
+                            <h6>Probability Breakdown:</h6>
+                            <ul id="breakdown-list" class="list-unstyled mb-0 font-monospace">
+                                </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
